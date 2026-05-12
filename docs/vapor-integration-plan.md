@@ -145,7 +145,7 @@ app.post("pets") { req async throws -> Pet in
   let body = try req.content.decode(CreatePet.self)
   return try await createPet(body)
 }
-.openAPI(
+.documented(
   operationID: "createPet",
   requestBody: .json(CreatePet.self),
   responses: [
@@ -168,7 +168,7 @@ Implementation steps:
 
 1. Add an `Application.OpenAPI` storage key containing info, servers, components,
    security schemes, and route metadata.
-2. Add `Route.openAPI(...)` helpers that append metadata to the application
+2. Add `Route.documented(...)` helpers that append metadata to the application
    registry after route registration.
 3. Convert Vapor path components to OpenAPI templates, preserving explicit
    names for `:petID` path components.
@@ -307,7 +307,7 @@ Rules:
    - Add tests that build a document without Vapor.
 
 3. **Vapor 4 manual API**
-   - Add `Route.openAPI(...)`, `Application.openAPI`, and serving helpers.
+   - Add `Route.documented(...)`, `Application.openAPI`, and serving helpers.
    - Add a fixture Vapor 4 app with request body, response, path, query, and
      error response metadata.
    - Snapshot the generated `openapi.json`.
