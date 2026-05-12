@@ -54,10 +54,16 @@ extension JSONValue {
 
 @resultBuilder
 public enum OpenAPIDocumentBuilder {
-  public static func buildBlock(_ components: any OpenAPIDocumentComponent...)
+  public static func buildExpression(_ component: any OpenAPIDocumentComponent)
     -> [any OpenAPIDocumentComponent]
   {
-    components
+    [component]
+  }
+
+  public static func buildBlock(_ components: [any OpenAPIDocumentComponent]...)
+    -> [any OpenAPIDocumentComponent]
+  {
+    components.flatMap { $0 }
   }
 
   public static func buildArray(_ components: [[any OpenAPIDocumentComponent]])
@@ -229,10 +235,16 @@ public struct Server: OpenAPIDocumentComponent {
 
 @resultBuilder
 public enum ComponentsBuilder {
-  public static func buildBlock(_ components: any ComponentsComponent...)
+  public static func buildExpression(_ component: any ComponentsComponent)
     -> [any ComponentsComponent]
   {
-    components
+    [component]
+  }
+
+  public static func buildBlock(_ components: [any ComponentsComponent]...)
+    -> [any ComponentsComponent]
+  {
+    components.flatMap { $0 }
   }
 
   public static func buildArray(_ components: [[any ComponentsComponent]])
@@ -381,8 +393,12 @@ public func APIKeyAuth(_ name: String, in location: ParameterLocation, keyName: 
 
 @resultBuilder
 public enum PathBuilder {
-  public static func buildBlock(_ operations: Operation...) -> [Operation] {
-    operations
+  public static func buildExpression(_ operation: Operation) -> [Operation] {
+    [operation]
+  }
+
+  public static func buildBlock(_ operations: [Operation]...) -> [Operation] {
+    operations.flatMap { $0 }
   }
 
   public static func buildArray(_ operations: [[Operation]]) -> [Operation] {
@@ -421,9 +437,16 @@ public enum HTTPMethod: String, Sendable {
 
 @resultBuilder
 public enum OperationBuilder {
-  public static func buildBlock(_ components: any OperationComponent...) -> [any OperationComponent]
+  public static func buildExpression(_ component: any OperationComponent)
+    -> [any OperationComponent]
   {
-    components
+    [component]
+  }
+
+  public static func buildBlock(_ components: [any OperationComponent]...)
+    -> [any OperationComponent]
+  {
+    components.flatMap { $0 }
   }
 
   public static func buildArray(_ components: [[any OperationComponent]])
@@ -694,8 +717,12 @@ public func QueryParameter(
 
 @resultBuilder
 public enum BodyBuilder {
-  public static func buildBlock(_ bodies: Body...) -> [Body] {
-    bodies
+  public static func buildExpression(_ body: Body) -> [Body] {
+    [body]
+  }
+
+  public static func buildBlock(_ bodies: [Body]...) -> [Body] {
+    bodies.flatMap { $0 }
   }
 
   public static func buildArray(_ bodies: [[Body]]) -> [Body] {
