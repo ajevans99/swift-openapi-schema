@@ -1,6 +1,9 @@
 import Foundation
 import JSONSchema
 import JSONSchemaBuilder
+import OrderedCollections
+
+typealias JSONObject = OrderedDictionary<String, JSONValue>
 
 public enum OpenAPIVersion: String, Sendable {
   case v3_0_3 = "3.0.3"
@@ -122,7 +125,7 @@ public struct OpenAPIDocument: Sendable {
     }
 
     var seenOperationIDs = Set<String>()
-    var pathObject: [String: JSONValue] = [:]
+    var pathObject = JSONObject()
     for path in paths {
       var item = pathObject[path.path]?.object ?? [:]
       for operation in path.operations {
@@ -139,7 +142,7 @@ public struct OpenAPIDocument: Sendable {
       pathObject[path.path] = .object(item)
     }
 
-    var object: [String: JSONValue] = [
+    var object: JSONObject = [
       "openapi": .string(version.rawValue),
       "info": info.jsonValue(),
       "paths": .object(pathObject),
@@ -155,12 +158,8 @@ public struct OpenAPIDocument: Sendable {
   }
 
   public func encodeCanonicalJSON(prettyPrinted: Bool = true) throws -> Data {
-    let encoder = JSONEncoder()
-    encoder.outputFormatting.insert(.sortedKeys)
-    if prettyPrinted {
-      encoder.outputFormatting.insert(.prettyPrinted)
-    }
-    var data = try encoder.encode(jsonValue())
+    var data = try jsonValue().serializedData(
+      options: JSONValue.SerializationOptions(prettyPrinted: prettyPrinted))
     if data.last != UInt8(ascii: "\n") {
       data.append(UInt8(ascii: "\n"))
     }
@@ -188,7 +187,7 @@ public struct Info: OpenAPIDocumentComponent {
   }
 
   func jsonValue() -> JSONValue {
-    var object: [String: JSONValue] = [
+    var object: JSONObject = [
       "title": .string(title),
       "version": .string(version),
     ]
@@ -213,7 +212,7 @@ public struct Server: OpenAPIDocumentComponent {
   }
 
   func jsonValue() -> JSONValue {
-    var object: [String: JSONValue] = ["url": .string(url)]
+    var object: JSONObject = ["url": .string(url)]
     if let description {
       object["description"] = .string(description)
     }
@@ -280,9 +279,9 @@ public struct Components: OpenAPIDocumentComponent, Sendable {
   }
 
   func jsonValue() throws -> JSONValue {
-    var object: [String: JSONValue] = [:]
+    var object = JSONObject()
     if !schemas.isEmpty {
-      var schemaObject: [String: JSONValue] = [:]
+      var schemaObject = JSONObject()
       for schema in schemas {
         if schemaObject[schema.name] != nil {
           throw OpenAPIError.duplicateComponent(schema.name)
@@ -292,7 +291,7 @@ public struct Components: OpenAPIDocumentComponent, Sendable {
       object["schemas"] = .object(schemaObject)
     }
     if !securitySchemes.isEmpty {
-      var securityObject: [String: JSONValue] = [:]
+      var securityObject = JSONObject()
       for scheme in securitySchemes {
         if securityObject[scheme.name] != nil {
           throw OpenAPIError.duplicateComponent(scheme.name)
@@ -324,7 +323,7 @@ public struct Schema: ComponentsComponent, @unchecked Sendable {
     self.name = name ?? defaultComponentName(for: type)
     self.provider = {
       let data = try JSONEncoder().encode(T.schema.definition())
-      return try JSONDecoder().decode(JSONValue.self, from: data)
+      return try JSONValue.parse(data)
     }
   }
 
@@ -356,7 +355,7 @@ public struct SecurityScheme: ComponentsComponent {
 }
 
 public func BearerAuth(_ name: String, bearerFormat: String? = nil) -> SecurityScheme {
-  var value: [String: JSONValue] = [
+  var value: JSONObject = [
     "type": .string("http"),
     "scheme": .string("bearer"),
   ]
@@ -506,7 +505,7 @@ public struct Operation: Sendable {
   }
 
   func jsonValue() throws -> JSONValue {
-    var object: [String: JSONValue] = [
+    var object: JSONObject = [
       "operationId": .string(operationID)
     ]
     if !tags.isEmpty {
@@ -525,7 +524,7 @@ public struct Operation: Sendable {
       object["requestBody"] = requestBodyJSON(requestBodies)
     }
 
-    var responseObject: [String: JSONValue] = [:]
+    var responseObject = JSONObject()
     for response in responses.isEmpty ? [Response(.default)] : responses {
       responseObject[response.status.rawValue] = try response.jsonValue()
     }
@@ -673,7 +672,7 @@ public struct Parameter: OperationComponent, Sendable {
   }
 
   func jsonValue() -> JSONValue {
-    var object: [String: JSONValue] = [
+    var object: JSONObject = [
       "name": .string(name),
       "in": .string(location.rawValue),
       "required": .boolean(required),
@@ -754,7 +753,7 @@ public struct Response: OperationComponent, Sendable {
   }
 
   func jsonValue() throws -> JSONValue {
-    var object: [String: JSONValue] = [
+    var object: JSONObject = [
       "description": .string(description)
     ]
     if !bodies.isEmpty {
@@ -788,7 +787,7 @@ public func JSONBody(schema: OpenAPISchemaValue) -> Body {
 }
 
 func contentJSON(_ bodies: [Body]) -> JSONValue {
-  var content: [String: JSONValue] = [:]
+  var content = JSONObject()
   for body in bodies {
     content[body.mediaType.rawValue] = .object([
       "schema": body.schema.jsonValue()
@@ -890,7 +889,7 @@ public indirect enum OpenAPISchemaValue: Sendable {
   case binaryString
 
   public static func rawObject(_ object: [String: JSONValue]) -> Self {
-    .raw(.object(object))
+    .raw(.object(JSONObject(uniqueKeysWithValues: object.map { ($0.key, $0.value) })))
   }
 
   @available(macOS 14.0, iOS 17.0, watchOS 10.0, tvOS 17.0, *)
@@ -910,28 +909,32 @@ public indirect enum OpenAPISchemaValue: Sendable {
         "items": items.jsonValue(),
       ])
     case .object(let properties, let required):
-      var object: [String: JSONValue] = [
+      var propertyObject = JSONObject()
+      for (name, schema) in properties {
+        propertyObject[name] = schema.jsonValue()
+      }
+      var object: JSONObject = [
         "type": .string("object"),
-        "properties": .object(properties.mapValues { $0.jsonValue() }),
+        "properties": .object(propertyObject),
       ]
       if !required.isEmpty {
         object["required"] = .array(required.map(JSONValue.string))
       }
       return .object(object)
     case .string(let format):
-      var object: [String: JSONValue] = ["type": .string("string")]
+      var object: JSONObject = ["type": .string("string")]
       if let format {
         object["format"] = .string(format)
       }
       return .object(object)
     case .integer(let format):
-      var object: [String: JSONValue] = ["type": .string("integer")]
+      var object: JSONObject = ["type": .string("integer")]
       if let format {
         object["format"] = .string(format)
       }
       return .object(object)
     case .number(let format):
-      var object: [String: JSONValue] = ["type": .string("number")]
+      var object: JSONObject = ["type": .string("number")]
       if let format {
         object["format"] = .string(format)
       }

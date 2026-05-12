@@ -15,7 +15,8 @@ let package = Package(
     .library(name: "OpenAPISchema", targets: ["OpenAPISchema"])
   ],
   dependencies: [
-    .package(url: "https://github.com/ajevans99/swift-json-schema.git", from: "0.12.0"),
+    .package(url: "https://github.com/ajevans99/swift-json-schema.git", from: "0.13.0"),
+    .package(url: "https://github.com/apple/swift-collections.git", from: "1.5.0"),
     .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", exact: "1.17.6"),
   ],
   targets: [
@@ -24,6 +25,7 @@ let package = Package(
       dependencies: [
         .product(name: "JSONSchema", package: "swift-json-schema"),
         .product(name: "JSONSchemaBuilder", package: "swift-json-schema"),
+        .product(name: "OrderedCollections", package: "swift-collections"),
       ],
       resources: [
         .process("Resources")

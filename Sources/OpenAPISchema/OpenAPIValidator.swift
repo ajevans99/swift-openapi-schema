@@ -10,8 +10,8 @@ public enum OpenAPIValidator {
     let schemaString = String(decoding: schemaData, as: UTF8.self)
     let jsonSchemaData = try resourceData(
       named: "json-schema-draft-2020-12.schema", extension: "json")
-    let jsonSchemaValue = try JSONDecoder().decode(JSONValue.self, from: jsonSchemaData)
-    let rawSchemaValue = try JSONDecoder().decode(JSONValue.self, from: schemaData)
+    let jsonSchemaValue = try JSONValue.parse(jsonSchemaData)
+    let rawSchemaValue = try JSONValue.parse(schemaData)
     let validationSchemaValue = removingUnsupportedKeywords(from: rawSchemaValue)
     // swift-json-schema currently false-fails OAS's annotation-heavy
     // unevaluated/dependent annotation checks through refs/conditionals. Keep the
@@ -56,7 +56,7 @@ public enum OpenAPIValidator {
   private static func removingUnsupportedKeywords(from value: JSONValue) -> JSONValue {
     switch value {
     case .object(let object):
-      var transformed: [String: JSONValue] = [:]
+      var transformed = JSONObject()
       for (key, value) in object
       where key != "unevaluatedProperties" && key != "dependentSchemas" {
         transformed[key] = removingUnsupportedKeywords(from: value)

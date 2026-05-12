@@ -147,7 +147,7 @@ struct OpenAPISchemaTests {
 
     #expect(first == second)
 
-    let decoded = try JSONDecoder().decode(JSONValue.self, from: first)
+    let decoded = try JSONValue.parse(first)
     let reencoded = try canonicalEncode(decoded)
     #expect(first == reencoded)
   }
@@ -241,9 +241,7 @@ private let errorSchema: JSONValue = [
 ]
 
 private func canonicalEncode(_ value: JSONValue) throws -> Data {
-  let encoder = JSONEncoder()
-  encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-  var data = try encoder.encode(value)
+  var data = try value.serializedData(options: .pretty)
   if data.last != UInt8(ascii: "\n") {
     data.append(UInt8(ascii: "\n"))
   }
