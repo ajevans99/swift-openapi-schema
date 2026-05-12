@@ -1,0 +1,104 @@
+{
+  "components" : {
+    "schemas" : {
+      "ErrorResponse" : {
+        "properties" : {
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [
+          "message"
+        ],
+        "type" : "object"
+      },
+      "Pet" : {
+        "properties" : {
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "tag" : {
+            "type" : "string"
+          }
+        },
+        "required" : [
+          "id",
+          "name"
+        ],
+        "type" : "object"
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "scheme" : "bearer",
+        "type" : "http"
+      }
+    }
+  },
+  "info" : {
+    "title" : "Pet API",
+    "version" : "1.0.0"
+  },
+  "openapi" : "3.1.0",
+  "paths" : {
+    "\/pets\/{petId}" : {
+      "get" : {
+        "description" : "Returns a single pet by ID.",
+        "operationId" : "getPetByID",
+        "parameters" : [
+          {
+            "in" : "path",
+            "name" : "petId",
+            "required" : true,
+            "schema" : {
+              "format" : "uuid",
+              "type" : "string"
+            }
+          }
+        ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application\/json" : {
+                "schema" : {
+                  "$ref" : "#\/components\/schemas\/Pet"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "404" : {
+            "content" : {
+              "application\/json" : {
+                "schema" : {
+                  "$ref" : "#\/components\/schemas\/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Not Found"
+          }
+        },
+        "security" : [
+          {
+            "bearerAuth" : [
+
+            ]
+          }
+        ],
+        "summary" : "Get a pet",
+        "tags" : [
+          "Pets"
+        ]
+      }
+    }
+  },
+  "servers" : [
+    {
+      "url" : "https:\/\/api.example.com"
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "components" : {
+    "schemas" : {
+      "ErrorResponse" : {
+        "properties" : {
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [
+          "message"
+        ],
+        "type" : "object"
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "scheme" : "bearer",
+        "type" : "http"
+      }
+    }
+  },
+  "info" : {
+    "title" : "Assets API",
+    "version" : "1.0.0"
+  },
+  "openapi" : "3.1.0",
+  "paths" : {
+    "\/fonts\/{token}\/file" : {
+      "get" : {
+        "operationId" : "downloadFontFile",
+        "parameters" : [
+          {
+            "in" : "path",
+            "name" : "token",
+            "required" : true,
+            "schema" : {
+              "type" : "string"
+            }
+          }
+        ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application\/octet-stream" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              },
+              "font\/otf" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              },
+              "font\/ttf" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              },
+              "font\/woff" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              },
+              "font\/woff2" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Font file bytes."
+          },
+          "401" : {
+            "content" : {
+              "application\/json" : {
+                "schema" : {
+                  "$ref" : "#\/components\/schemas\/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "404" : {
+            "content" : {
+              "application\/json" : {
+                "schema" : {
+                  "$ref" : "#\/components\/schemas\/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Not Found"
+          }
+        },
+        "security" : [
+          {
+            "bearerAuth" : [
+
+            ]
+          }
+        ],
+        "summary" : "Download font file",
+        "tags" : [
+          "Fonts"
+        ]
+      }
+    }
+  }
+}
