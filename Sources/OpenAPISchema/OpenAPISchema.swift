@@ -1,7 +1,6 @@
 import Foundation
 import JSONSchema
 import JSONSchemaBuilder
-import OrderedCollections
 
 public enum OpenAPIVersion: String, Sendable {
   case v3_0_3 = "3.0.3"
@@ -38,17 +37,6 @@ public enum OpenAPIError: Error, CustomStringConvertible, Equatable {
     case .validationFailed(let errors):
       return "OpenAPI validation failed: \(errors.joined(separator: "; "))"
     }
-  }
-}
-
-extension JSONValue {
-  static func object(_ dictionary: [String: JSONValue]) -> JSONValue {
-    var ordered = OrderedDictionary<String, JSONValue>()
-    ordered.reserveCapacity(dictionary.count)
-    for key in dictionary.keys.sorted() {
-      ordered[key] = dictionary[key]
-    }
-    return .object(ordered)
   }
 }
 
