@@ -322,8 +322,7 @@ public struct Schema: ComponentsComponent, @unchecked Sendable {
   public init<T: Schemable>(_ type: T.Type, name: String? = nil) {
     self.name = name ?? defaultComponentName(for: type)
     self.provider = {
-      let data = try JSONEncoder().encode(T.schema.definition())
-      return try JSONValue.parse(data)
+      T.schema.definition().jsonValue
     }
   }
 
