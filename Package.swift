@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.1
 import PackageDescription
 
 let package = Package(
@@ -15,7 +15,7 @@ let package = Package(
     .library(name: "OpenAPISchema", targets: ["OpenAPISchema"])
   ],
   dependencies: [
-    .package(url: "https://github.com/ajevans99/swift-json-schema.git", from: "0.13.0"),
+    .package(url: "https://github.com/ajevans99/swift-json-schema.git", from: "0.14.0"),
     .package(url: "https://github.com/apple/swift-collections.git", from: "1.5.0"),
     .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", exact: "1.17.6"),
   ],
@@ -25,6 +25,7 @@ let package = Package(
       dependencies: [
         .product(name: "JSONSchema", package: "swift-json-schema"),
         .product(name: "JSONSchemaBuilder", package: "swift-json-schema"),
+        .product(name: "OrderedJSON", package: "swift-json-schema"),
         .product(name: "OrderedCollections", package: "swift-collections"),
       ],
       resources: [
@@ -35,8 +36,6 @@ let package = Package(
       name: "OpenAPISchemaTests",
       dependencies: [
         "OpenAPISchema",
-        .product(name: "JSONSchema", package: "swift-json-schema"),
-        .product(name: "JSONSchemaBuilder", package: "swift-json-schema"),
         .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
       ],
       exclude: ["__Snapshots__"]
